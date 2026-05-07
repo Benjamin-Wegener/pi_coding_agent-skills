@@ -1,5 +1,5 @@
 ---
-name: ddg-search
+name: web-search
 description: "Web search via DuckDuckGo, no API key required. Use for current events, documentation, facts, prices, or any information that may have changed since your training cutoff."
 ---
 
