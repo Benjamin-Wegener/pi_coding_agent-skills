@@ -2,42 +2,38 @@
 /**
  * DuckDuckGo Search Skill for Pi Coding Agent
  * 
- * This script uses the ddg-search npm package to perform web searches
- * via DuckDuckGo without requiring an API key.
- * 
  * Usage:
  *   node search.js "your query"
- *   node search.js "your query" -n 10 (for 10 results)
- * 
- * Note: First run may take a few seconds.
+ *   node search.js "your query" -n 10
  */
 
 import { search } from "ddg-search";
 
-// Parse command line arguments
 const args = process.argv.slice(2);
 
 if (args.length === 0) {
-  console.error("Usage: node search.js \"your query\"");
-  console.error("       node search.js \"your query\" -n 10 (for 10 results)");
+  console.error('Usage: node search.js "your query"');
+  console.error('       node search.js "your query" -n 10');
   process.exit(1);
 }
 
-// Find the -n flag
+// Parse -n flag
 const nFlag = args.indexOf("-n");
-const count = nFlag !== -1 ? parseInt(args[nFlag + 1], 10) : 5;
+const parsedCount = nFlag !== -1 ? parseInt(args[nFlag + 1], 10) : 5;
+const count = Number.isFinite(parsedCount) && parsedCount > 0 ? parsedCount : 5;
 
 // Extract the query (skip -n flag and its value)
 const query = args.filter((_, i) => i !== nFlag && i !== nFlag + 1).join(" ");
 
 async function main() {
   try {
-    // Perform the search
-    const results = await search(query, { maxResults: 50 });
-    const trimmed = results.results.slice(0, count);
+    // Fix: request only what we need — avoids DDG rate limiting
+    // Also handle both array and { results: [] } return shapes
+    const response = await search(query, { maxResults: count });
+    const resultList = Array.isArray(response) ? response : (response.results ?? []);
+    const trimmed = resultList.slice(0, count);
 
-    // Check if we got any results
-    if (!trimmed.length) {
+    if (trimmed.length === 0) {
       console.error("No results found. Try refining your query or checking DuckDuckGo availability.");
       process.exit(1);
     }
