@@ -1,0 +1,23 @@
+{
+  "name": "duckduckgo-search",
+  "version": "1.0.0",
+  "description": "DuckDuckGo web search skill for Pi Coding Agent - no API key required",
+  "main": "search.js",
+  "type": "module",
+  "scripts": {
+    "test": "node search.js \"your query\" -n 5"
+  },
+  "keywords": [
+    "duckduckgo",
+    "search",
+    "web",
+    "pi-coding-agent",
+    "skill"
+  ],
+  "author": "Pi Coding Agent",
+  "license": "MIT",
+  "dependencies": {
+    "ddg-search": "^2026.2.16"
+  },
+  "devDependencies": {}
+}
