@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Lock files
+package-lock.json
+
+# Logs
+npm-debug.log
+
+# OS
+.DS_Store
+*.swp
+*.bak
