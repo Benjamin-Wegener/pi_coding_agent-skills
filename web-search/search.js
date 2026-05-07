@@ -22,8 +22,10 @@ const nFlag = args.indexOf("-n");
 const parsedCount = nFlag !== -1 ? parseInt(args[nFlag + 1], 10) : 5;
 const count = Number.isFinite(parsedCount) && parsedCount > 0 ? parsedCount : 5;
 
-// Extract the query (skip -n flag and its value)
-const query = args.filter((_, i) => i !== nFlag && i !== nFlag + 1).join(" ");
+// Extract the query - only skip -n arguments when -n was actually provided
+const query = nFlag !== -1
+  ? args.filter((_, i) => i !== nFlag && i !== nFlag + 1).join(" ")
+  : args.join(" ");
 
 async function main() {
   try {
@@ -47,7 +49,9 @@ async function main() {
       console.log();
     });
   } catch (error) {
-    console.error("Error:", error.message);
+    // Handle both Error objects and other error types
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error("Error:", errorMsg);
     process.exit(1);
   }
 }
