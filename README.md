@@ -10,7 +10,7 @@ Browse the skills below to find the perfect tools for your agent:
 
 [**web-search**](web-search/) - DuckDuckGo web search skill with no API key required. Get real-time information from the web.
 
-### **Coming Soon** 🚧
+### **Coming Soon (maybe)** 🚧
 
 - **Web Browsing** - Browse the web with live content and extract information
 - **Code Execution** - Run and analyze code snippets in Python, JavaScript, and more
