@@ -13,7 +13,8 @@ Live DuckDuckGo search for Pi Coding Agent. No API key required.
 
 Tell your Pi coding agent:
 ```bash
-Clone https://github.com/Benjamin-Wegener/pi_coding_agent-skills, copy the complete web-search/ folder into Pi’s skills directory, and run npm install there. Make sure the complete web-search/ folder is installed into Pi's skills directory so SKILL.md, search.js, and the rest of the skill persist after a Pi restart.
+git clone https://github.com/Benjamin-Wegener/pi_coding_agent-skills.git && mkdir -p ~/.pi/agent/skills/web-search && cp -r pi_coding_agent-skills/web-search/* ~/.pi/agent/skills/web-search/ && cd ~/.pi/agent/skills/web-search && npm install
+~/.pi/agent/skills/web-search/{README.md,SKILL.md,package.json,search.js,node_modules/}
 ```
 
 ## Usage
