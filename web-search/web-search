@@ -1,0 +1,17 @@
+#!/bin/bash
+# Web Search Skill Wrapper for Pi Coding Agent
+# Usage: web-search "your query" [-n 10]
+#
+# This wrapper allows you to use web-search as a direct command
+# without needing to invoke the skill manually.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+NODE_SCRIPT="${SCRIPT_DIR}/search.js"
+
+if [ ! -f "$NODE_SCRIPT" ]; then
+    echo "Error: search.js not found"
+    exit 1
+fi
+
+# Forward all arguments to the node script
+exec node "$NODE_SCRIPT" "$@"
