@@ -26,8 +26,8 @@ npm install
 ### Manual Copy
 
 ```bash
-cp -r /path/to/web-search/* ~/.pi/agent/skills/web-search/
-cd ~/.pi/agent/skills/web-search && npm install
+git clone https://github.com/Benjamin-Wegener/pi_coding_agent-skills.git && mkdir -p ~/.pi/agent/skills/web-search && cp -r pi_coding_agent-skills/web-search/* ~/.pi/agent/skills/web-search/ && cd ~/.pi/agent/skills/web-search && npm install
+~/.pi/agent/skills/web-search/{README.md,SKILL.md,package.json,search.js,node_modules/}
 ```
 
 ## Usage
