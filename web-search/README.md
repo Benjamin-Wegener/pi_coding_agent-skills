@@ -20,13 +20,14 @@ git clone https://github.com/Benjamin-Wegener/pi_coding_agent-skills.git && \
 mkdir -p ~/.pi/agent/skills/web-search && \
 cp -r pi_coding_agent-skills/web-search/* ~/.pi/agent/skills/web-search/ && \
 cd ~/.pi/agent/skills/web-search && \
-npm install
+npm install && \
+npm link
 ```
 
 ### Manual Copy
 
 ```bash
-git clone https://github.com/Benjamin-Wegener/pi_coding_agent-skills.git && mkdir -p ~/.pi/agent/skills/web-search && cp -r pi_coding_agent-skills/web-search/* ~/.pi/agent/skills/web-search/ && cd ~/.pi/agent/skills/web-search && npm install
+git clone https://github.com/Benjamin-Wegener/pi_coding_agent-skills.git && mkdir -p ~/.pi/agent/skills/web-search && cp -r pi_coding_agent-skills/web-search/* ~/.pi/agent/skills/web-search/ && cd ~/.pi/agent/skills/web-search && npm install && npm link
 ~/.pi/agent/skills/web-search/{README.md,SKILL.md,package.json,search.js,node_modules/}
 ```
 
@@ -111,10 +112,11 @@ npm install
 ```
 
 ### Command Not Found
-Make sure the skill is in your PATH or use the full path:
+Link the command once, then run it from anywhere:
 ```bash
-# Add to PATH (optional)
-ln -sf ~/.pi/agent/skills/web-search/web-search /usr/local/bin/web-search
+# Register CLI in PATH (recommended)
+cd ~/.pi/agent/skills/web-search
+npm link
 
 # Or use full path
 ~/.pi/agent/skills/web-search/web-search "your query"

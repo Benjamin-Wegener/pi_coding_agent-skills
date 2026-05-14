@@ -20,6 +20,14 @@ Use this skill whenever you need:
 
 ## How to Run
 
+Install once:
+
+```bash
+cd ~/.pi/agent/skills/web-search
+npm install
+npm link
+```
+
 ### Option 1: Direct Command (Recommended)
 
 ```bash
