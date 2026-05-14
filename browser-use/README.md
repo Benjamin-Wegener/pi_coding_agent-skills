@@ -15,6 +15,21 @@ Browser automation skill powered by `browsh` in a persistent `tmux` session.
 - `tmux` installed and available in PATH
 - Node.js 18+
 
+## Install System Dependencies
+
+### macOS (Homebrew)
+
+```bash
+brew install browsh tmux
+```
+
+### Ubuntu/Debian
+
+```bash
+sudo apt update
+sudo apt install -y browsh tmux
+```
+
 ## Installation
 
 ```bash
@@ -24,6 +39,14 @@ cp -r pi_coding_agent-skills/browser-use/* ~/.pi/agent/skills/browser-use/ && \
 cd ~/.pi/agent/skills/browser-use && \
 npm install && \
 npm link
+```
+
+## Quick Check
+
+```bash
+command -v browsh
+command -v tmux
+browser-use help
 ```
 
 ## Usage
@@ -49,3 +72,15 @@ browser-use attach
 ```
 
 Then complete login directly in Browsh (including 2FA). Detach from tmux with `Ctrl-b`, then `d`.
+
+## Troubleshooting
+
+If you see `Error: 'browsh' not found. Please install browsh first.`:
+
+1. Install dependencies (`browsh`, `tmux`) using the commands above.
+2. Open a new terminal and run `command -v browsh`.
+3. If Homebrew fails with DNS/network errors, retry when network is stable:
+```bash
+brew update
+brew install browsh tmux
+```

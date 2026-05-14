@@ -8,6 +8,7 @@ description: "Interactive web browsing skill using Browsh in a persistent tmux s
 ## Setup
 
 ```bash
+brew install browsh tmux
 cd ~/.pi/agent/skills/browser-use
 npm install
 npm link
