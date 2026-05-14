@@ -10,6 +10,10 @@ Browse the skills below to find the perfect tools for your agent:
 
 [**web-search**](web-search/) - DuckDuckGo web search skill with no API key required. Get real-time information from the web.
 
+### **Self Critique Extension** 🧠
+
+[**self-critique**](self-critique/) - Before using tools, the agent will self-critique its plan to catch mistakes early. Triggers after user prompts and tool errors.
+
 ### **Coming Soon (maybe)** 🚧
 
 - **Web Browsing** - Browse the web with live content and extract information
