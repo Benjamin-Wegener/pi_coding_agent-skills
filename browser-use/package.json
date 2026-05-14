@@ -10,15 +10,14 @@
   "keywords": [
     "browser",
     "automation",
-    "playwright",
+    "browsh",
+    "tmux",
     "pi-coding-agent",
     "skill"
   ],
   "author": "Pi Coding Agent",
   "license": "MIT",
-  "dependencies": {
-    "playwright": "^1.55.0"
-  },
+  "dependencies": {},
   "bin": {
     "browser-use": "./browser-use"
   }

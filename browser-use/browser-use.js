@@ -2,75 +2,29 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import readline from "node:readline";
-import { chromium } from "playwright";
+import { spawnSync } from "node:child_process";
 
 const args = process.argv.slice(2);
+const stateDir = path.join(os.homedir(), ".pi", "agent", "skills", "browser-use");
+const stateFile = path.join(stateDir, ".browser-use-state.json");
 
-const defaultProfileDir = path.join(os.homedir(), ".pi", "agent", "skills", "browser-use", ".profile");
-const defaultStateFile = path.join(defaultProfileDir, ".browser-use-state.json");
-
-function printHelp() {
-  console.log(`Browser Use Skill
-
-Usage:
-  browser-use open <url> [--headed]
-  browser-use login <url>
-  browser-use click <selector> [--headed]
-  browser-use type <selector> <text> [--headed]
-  browser-use enter [selector] [--headed]
-  browser-use back [--headed]
-  browser-use forward [--headed]
-  browser-use url
-  browser-use screenshot [path] [--headed]
-  browser-use help
-
-Global flags:
-  --profile <dir>    Persistent browser profile directory
-  --timeout <ms>     Action timeout in milliseconds (default: 15000)
-  --headed           Launch visible browser window
-
-Examples:
-  browser-use open "https://google.com" --headed
-  browser-use login "https://accounts.google.com"
-  browser-use type "textarea[name='q']" "latest AI news"
-  browser-use enter "textarea[name='q']"
-  browser-use click "a h3"
-  browser-use back
-  browser-use forward
-`);
+function run(cmd, cmdArgs) {
+  return spawnSync(cmd, cmdArgs, { encoding: "utf8" });
 }
 
-function parseFlags(rawArgs) {
-  let profileDir = defaultProfileDir;
-  let timeout = 15000;
-  let headed = false;
-  const positional = [];
-
-  for (let i = 0; i < rawArgs.length; i += 1) {
-    const token = rawArgs[i];
-    if (token === "--profile") {
-      profileDir = rawArgs[i + 1];
-      i += 1;
-    } else if (token === "--timeout") {
-      timeout = Number.parseInt(rawArgs[i + 1], 10);
-      i += 1;
-    } else if (token === "--headed") {
-      headed = true;
-    } else {
-      positional.push(token);
-    }
+function mustHaveBinary(bin) {
+  const res = run("sh", ["-lc", `command -v ${bin}`]);
+  if (res.status !== 0) {
+    console.error(`Error: '${bin}' not found. Please install ${bin} first.`);
+    process.exit(1);
   }
-
-  if (!Number.isFinite(timeout) || timeout <= 0) timeout = 15000;
-  return { profileDir, timeout, headed, positional };
 }
 
-function ensureDir(dir) {
-  fs.mkdirSync(dir, { recursive: true });
+function ensureStateDir() {
+  fs.mkdirSync(stateDir, { recursive: true });
 }
 
-function readState(stateFile) {
+function loadState() {
   try {
     return JSON.parse(fs.readFileSync(stateFile, "utf8"));
   } catch {
@@ -78,187 +32,181 @@ function readState(stateFile) {
   }
 }
 
-function writeState(stateFile, state) {
-  fs.writeFileSync(stateFile, JSON.stringify(state, null, 2));
+function saveState(next) {
+  ensureStateDir();
+  fs.writeFileSync(stateFile, JSON.stringify(next, null, 2));
 }
 
-async function withPage({ profileDir, headed, timeout }, fn) {
-  ensureDir(profileDir);
-  const context = await chromium.launchPersistentContext(profileDir, {
-    headless: !headed,
-    viewport: { width: 1366, height: 900 }
-  });
+function printHelp() {
+  console.log(`Browser Use (Browsh backend)
 
-  context.setDefaultTimeout(timeout);
-  const stateFile = path.join(profileDir, ".browser-use-state.json");
-  const state = readState(stateFile);
+Usage:
+  browser-use open <url>
+  browser-use attach
+  browser-use type <text>
+  browser-use enter
+  browser-use click <hint>
+  browser-use back
+  browser-use forward
+  browser-use send <tmux-keys...>
+  browser-use status
+  browser-use stop
+  browser-use help
 
-  let page = context.pages()[0];
-  if (!page) page = await context.newPage();
-
-  if (state.lastUrl && page.url() === "about:blank") {
-    try {
-      await page.goto(state.lastUrl, { waitUntil: "domcontentloaded" });
-    } catch {
-      // Ignore stale URL load failures and continue with current page.
-    }
-  }
-
-  try {
-    await fn(page);
-    const currentUrl = page.url();
-    if (currentUrl && currentUrl !== "about:blank") {
-      writeState(stateFile, { lastUrl: currentUrl, updatedAt: new Date().toISOString() });
-    }
-  } finally {
-    await context.close();
-  }
+Notes:
+  - Uses a persistent tmux session running browsh.
+  - 'click <hint>' uses Browsh link-hint flow: press 'f', type hint, Enter.
+  - Use 'attach' for manual flows like Google login/2FA.
+`);
 }
 
-function requireArg(value, message) {
-  if (!value) {
-    console.error(message);
+function requireSession() {
+  const state = loadState();
+  const session = state.session;
+  if (!session) {
+    console.error("No active session. Run: browser-use open <url>");
+    process.exit(1);
+  }
+  const ok = run("tmux", ["has-session", "-t", session]);
+  if (ok.status !== 0) {
+    console.error("Saved session no longer exists. Run: browser-use open <url>");
+    process.exit(1);
+  }
+  return { state, session };
+}
+
+function tmuxSend(session, keys) {
+  const res = run("tmux", ["send-keys", "-t", session, ...keys]);
+  if (res.status !== 0) {
+    console.error(res.stderr || "Failed to send keys to tmux session.");
     process.exit(1);
   }
 }
 
-function waitForEnter(promptText) {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve) => {
-    rl.question(promptText, () => {
-      rl.close();
-      resolve();
-    });
-  });
-}
-
-async function main() {
+function main() {
   if (args.length === 0 || args[0] === "help" || args[0] === "--help") {
     printHelp();
     return;
   }
 
-  const { profileDir, timeout, headed, positional } = parseFlags(args);
-  const command = positional[0];
+  mustHaveBinary("browsh");
+  mustHaveBinary("tmux");
 
-  if (!command) {
-    printHelp();
-    process.exit(1);
-  }
+  const cmd = args[0];
 
-  if (command === "url") {
-    const state = readState(path.join(profileDir, ".browser-use-state.json"));
-    if (!state.lastUrl) {
-      console.error("No last URL recorded yet. Use: browser-use open <url>");
+  if (cmd === "open") {
+    const url = args[1];
+    if (!url) {
+      console.error("Usage: browser-use open <url>");
       process.exit(1);
     }
-    console.log(state.lastUrl);
+    const session = `browser_use_${Date.now()}`;
+    const start = run("tmux", ["new-session", "-d", "-s", session, "browsh", url]);
+    if (start.status !== 0) {
+      console.error(start.stderr || "Failed to start browsh session.");
+      process.exit(1);
+    }
+    saveState({ session, lastUrl: url, updatedAt: new Date().toISOString() });
+    console.log(`Started Browsh session: ${session}`);
+    console.log(`URL: ${url}`);
+    console.log("Use 'browser-use attach' to interactively log in or browse.");
     return;
   }
 
-  const options = { profileDir, headed, timeout };
+  if (cmd === "attach") {
+    const { session } = requireSession();
+    console.log(`Attaching to session ${session}. Detach with Ctrl-b then d.`);
+    const attached = spawnSync("tmux", ["attach-session", "-t", session], { stdio: "inherit" });
+    process.exit(attached.status ?? 0);
+  }
 
-  if (command === "open") {
-    const url = positional[1];
-    requireArg(url, "Usage: browser-use open <url>");
-    await withPage(options, async (page) => {
-      await page.goto(url, { waitUntil: "commit" });
-      console.log(`Opened: ${page.url()}`);
-    });
+  if (cmd === "status") {
+    const state = loadState();
+    if (!state.session) {
+      console.log("No active Browsh session.");
+      return;
+    }
+    const ok = run("tmux", ["has-session", "-t", state.session]);
+    console.log(`Session: ${state.session}`);
+    console.log(`Running: ${ok.status === 0 ? "yes" : "no"}`);
+    if (state.lastUrl) console.log(`Last URL: ${state.lastUrl}`);
     return;
   }
 
-  if (command === "login") {
-    const url = positional[1];
-    requireArg(url, "Usage: browser-use login <url>");
-    ensureDir(profileDir);
-    const context = await chromium.launchPersistentContext(profileDir, {
-      headless: false,
-      viewport: { width: 1366, height: 900 }
-    });
-    context.setDefaultTimeout(timeout);
-    const page = context.pages()[0] || await context.newPage();
-    await page.goto(url, { waitUntil: "commit" });
-    console.log(`Opened login page: ${page.url()}`);
-    await waitForEnter("Complete login in browser, then press Enter here to save session and close...");
-    const stateFile = path.join(profileDir, ".browser-use-state.json");
-    writeState(stateFile, { lastUrl: page.url(), updatedAt: new Date().toISOString() });
-    await context.close();
-    console.log("Login session saved.");
+  if (cmd === "stop") {
+    const state = loadState();
+    if (!state.session) {
+      console.log("No active Browsh session.");
+      return;
+    }
+    run("tmux", ["kill-session", "-t", state.session]);
+    saveState({});
+    console.log("Stopped Browsh session.");
     return;
   }
 
-  if (command === "click") {
-    const selector = positional[1];
-    requireArg(selector, "Usage: browser-use click <selector>");
-    await withPage(options, async (page) => {
-      await page.click(selector);
-      console.log(`Clicked: ${selector}`);
-      console.log(`URL: ${page.url()}`);
-    });
+  if (cmd === "type") {
+    const text = args.slice(1).join(" ");
+    if (!text) {
+      console.error("Usage: browser-use type <text>");
+      process.exit(1);
+    }
+    const { session } = requireSession();
+    tmuxSend(session, [text]);
+    console.log(`Typed: ${text}`);
     return;
   }
 
-  if (command === "type") {
-    const selector = positional[1];
-    const text = positional.slice(2).join(" ");
-    requireArg(selector, "Usage: browser-use type <selector> <text>");
-    requireArg(text, "Usage: browser-use type <selector> <text>");
-    await withPage(options, async (page) => {
-      await page.fill(selector, text);
-      console.log(`Typed into ${selector}: ${text}`);
-    });
+  if (cmd === "enter") {
+    const { session } = requireSession();
+    tmuxSend(session, ["Enter"]);
+    console.log("Pressed Enter");
     return;
   }
 
-  if (command === "enter") {
-    const selector = positional[1];
-    await withPage(options, async (page) => {
-      if (selector) {
-        await page.click(selector);
-      }
-      await page.keyboard.press("Enter");
-      await page.waitForLoadState("domcontentloaded");
-      console.log(`Pressed Enter${selector ? ` on ${selector}` : ""}`);
-      console.log(`URL: ${page.url()}`);
-    });
+  if (cmd === "back") {
+    const { session } = requireSession();
+    tmuxSend(session, ["M-Left"]);
+    console.log("Back");
     return;
   }
 
-  if (command === "back") {
-    await withPage(options, async (page) => {
-      await page.goBack({ waitUntil: "domcontentloaded" });
-      console.log(`URL: ${page.url()}`);
-    });
+  if (cmd === "forward") {
+    const { session } = requireSession();
+    tmuxSend(session, ["M-Right"]);
+    console.log("Forward");
     return;
   }
 
-  if (command === "forward") {
-    await withPage(options, async (page) => {
-      await page.goForward({ waitUntil: "domcontentloaded" });
-      console.log(`URL: ${page.url()}`);
-    });
+  if (cmd === "click") {
+    const hint = args[1];
+    if (!hint) {
+      console.error("Usage: browser-use click <hint>");
+      process.exit(1);
+    }
+    const { session } = requireSession();
+    tmuxSend(session, ["f"]);
+    tmuxSend(session, [hint]);
+    tmuxSend(session, ["Enter"]);
+    console.log(`Clicked hint: ${hint}`);
     return;
   }
 
-  if (command === "screenshot") {
-    const outPath = positional[1] || path.join(process.cwd(), "browser-use-screenshot.png");
-    await withPage(options, async (page) => {
-      await page.screenshot({ path: outPath, fullPage: true });
-      console.log(`Saved screenshot: ${outPath}`);
-    });
+  if (cmd === "send") {
+    const keys = args.slice(1);
+    if (keys.length === 0) {
+      console.error("Usage: browser-use send <tmux-keys...>");
+      process.exit(1);
+    }
+    const { session } = requireSession();
+    tmuxSend(session, keys);
+    console.log(`Sent keys: ${keys.join(" ")}`);
     return;
   }
 
-  console.error(`Unknown command: ${command}`);
+  console.error(`Unknown command: ${cmd}`);
   printHelp();
   process.exit(1);
 }
 
-try {
-  await main();
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(`Error: ${message}`);
-  process.exit(1);
-}
+main();

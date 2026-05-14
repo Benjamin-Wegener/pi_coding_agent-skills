@@ -1,14 +1,19 @@
-# Browser Use Skill for Pi Coding Agent
+# Browser Use Skill for Pi Coding Agent (Browsh)
 
-Browser automation skill with persistent sessions for real web interaction.
+Browser automation skill powered by `browsh` in a persistent `tmux` session.
 
 ## Features
 
-- Open pages with Chromium
-- Click, type, and press Enter
-- Navigate backward and forward
-- Save screenshots
-- Keep session state between commands (cookies/login)
+- Open pages in Browsh
+- Send actions: click (link hint), type, enter, back, forward
+- Attach to the live browser session for manual interaction/login
+- Keep one persistent session state between commands
+
+## Requirements
+
+- `browsh` installed and available in PATH
+- `tmux` installed and available in PATH
+- Node.js 18+
 
 ## Installation
 
@@ -18,41 +23,29 @@ mkdir -p ~/.pi/agent/skills/browser-use && \
 cp -r pi_coding_agent-skills/browser-use/* ~/.pi/agent/skills/browser-use/ && \
 cd ~/.pi/agent/skills/browser-use && \
 npm install && \
-npx playwright install chromium && \
 npm link
 ```
 
 ## Usage
 
 ```bash
-browser-use open "https://google.com" --headed
-browser-use login "https://accounts.google.com"
-browser-use type "textarea[name='q']" "latest AI news" --headed
-browser-use enter "textarea[name='q']" --headed
-browser-use click "a h3" --headed
-browser-use back --headed
-browser-use forward --headed
-browser-use screenshot ./shot.png --headed
-browser-use url
+browser-use open "https://google.com"
+browser-use attach
+browser-use type "gmail.com"
+browser-use enter
+browser-use back
+browser-use forward
+browser-use click aa
+browser-use send C-l
+browser-use status
+browser-use stop
 ```
 
-## Google Login Workflow
-
-1. Open login page in headed mode:
-```bash
-browser-use login "https://accounts.google.com"
-```
-2. Complete login/2FA in the visible browser.
-3. Press Enter in terminal to save session state.
-4. Reuse the same profile in later commands and the session stays logged in.
-
-## Command Reference
+## Google Login
 
 ```bash
-browser-use help
+browser-use open "https://accounts.google.com"
+browser-use attach
 ```
 
-Global flags:
-- `--headed` open a visible browser window
-- `--profile <dir>` custom persistent profile directory
-- `--timeout <ms>` action timeout
+Then complete login directly in Browsh (including 2FA). Detach from tmux with `Ctrl-b`, then `d`.
