@@ -10,9 +10,12 @@ Browse the skills below to find the perfect tools for your agent:
 
 [**web-search**](web-search/) - DuckDuckGo web search skill with no API key required. Get real-time information from the web.
 
+### **Browser Automation** 🧭
+
+[**browser-use**](browser-use/) - Browser automation with persistent sessions. Open, click, type, press Enter, go back/forward, and keep login state.
+
 ### **Coming Soon (maybe)** 🚧
 
-- **Web Browsing** - Browse the web with live content and extract information
 - **Code Execution** - Run and analyze code snippets in Python, JavaScript, and more
 - **Image Analysis** - Analyze uploaded images and extract text
 - **File Operations** - Create, edit, and manage files

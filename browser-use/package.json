@@ -1,0 +1,24 @@
+{
+  "name": "browser-use-skill",
+  "version": "1.0.0",
+  "description": "Browser automation skill for Pi Coding Agent with persistent login sessions",
+  "main": "browser-use.js",
+  "type": "module",
+  "scripts": {
+    "test": "node browser-use.js help"
+  },
+  "keywords": [
+    "browser",
+    "automation",
+    "browsh",
+    "tmux",
+    "pi-coding-agent",
+    "skill"
+  ],
+  "author": "Pi Coding Agent",
+  "license": "MIT",
+  "dependencies": {},
+  "bin": {
+    "browser-use": "./browser-use"
+  }
+}
