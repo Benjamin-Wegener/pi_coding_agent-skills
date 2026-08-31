@@ -1,6 +1,8 @@
-# DuckDuckGo Web Search Skill for Pi Coding Agent
+# DuckDuckGo Web Search Skill for Pi Coding Agent (Deprecated)
 
-Live DuckDuckGo search for Pi Coding Agent. No API key required.
+> [!WARNING]
+> **DEPRECATED**: This standalone search skill is no longer actively maintained.  
+> It is replaced by **[pi-browseros-neo](https://github.com/Benjamin-Wegener/pi-browseros-neo)** for full web interaction and live browsing.
 
 ## Features
 

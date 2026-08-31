@@ -1,14 +1,19 @@
 # Pi Coding Agent Skills
 
+> [!WARNING]
+> **DEPRECATED / ARCHIVED**  
+> This repository and the standalone `web-search` skill are **no longer actively maintained**.  
+> They have been replaced by the dedicated **[pi-browseros-neo](https://github.com/Benjamin-Wegener/pi-browseros-neo)** extension & skill integration (live browser automation, native sessions, and direct MCP tool integration).
+
 A curated list of drop-in skills for the Pi Coding Agent.
 
 ## 📦 Skills
 
 Browse the skills below to find the perfect tools for your agent:
 
-### **Web Search** 🌐
+### **Web Search** 🌐 *(Deprecated)*
 
-[**web-search**](web-search/) - DuckDuckGo web search skill with no API key required. Get real-time information from the web.
+[**web-search**](web-search/) - DuckDuckGo web search skill. *Note: Replaced by [pi-browseros-neo](https://github.com/Benjamin-Wegener/pi-browseros-neo).*
 
 ### **Coming Soon (maybe)** 🚧
 
